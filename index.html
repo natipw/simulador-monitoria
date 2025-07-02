@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-  
+
   <style>
     :root {
       --c-comunicacao: #4a86e8; --c-resolucao: #6aa84f; --c-processos: #a64d79;
@@ -24,15 +24,44 @@
     .simulator-container {
       width: 100%; max-width: 720px; background-color: var(--c-card-bg);
       border-radius: 20px; box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.1);
-      margin: auto; overflow: hidden;
+      margin: auto;
     }
+    
     .simulator-header {
-      padding: 2rem; color: white; text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      padding: 1.5rem;
+      color: white;
+      text-align: center;
       background: linear-gradient(45deg, #3b82f6, #8b5cf6);
+      border-bottom: 1px solid rgba(255,255,255,0.2);
     }
-    .simulator-header h1 { margin: 0 0 0.5rem; font-size: 1.75rem; }
-    .simulator-header p { margin: 0; opacity: 0.9; font-size: 1rem; max-width: 500px; margin-inline: auto; }
-    .criteria-area { padding: 1.5rem 1.5rem 8rem 1.5rem; /* Espaço para o footer flutuante */ }
+    .simulator-header h1 { margin: 0 0 1.5rem; font-size: 1.5rem; }
+    
+    .score-display {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        max-width: 400px;
+        margin: auto;
+        padding: 1rem;
+        background-color: rgba(0,0,0,0.2);
+        border-radius: 12px;
+    }
+    #resetButton {
+      font-size: 0.9rem; font-weight: 600; color: white;
+      background: transparent; border: 1px solid rgba(255,255,255,0.5);
+      cursor: pointer; padding: 0.6rem 1rem; border-radius: 8px;
+    }
+    .score-details { text-align: right; }
+    .score-label { font-size: 1rem; opacity: 0.8; display: block; }
+    #totalScore {
+      display: block; font-size: 2.5rem; font-weight: 700;
+      color: white; line-height: 1.1;
+    }
+    
+    .criteria-area { padding: 1.5rem; }
     .category-title {
       font-size: 1rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;
       margin: 1.5rem 0 1rem 0; padding-bottom: 0.5rem; border-bottom: 2px solid;
@@ -41,6 +70,7 @@
     [data-category="comunicacao"] .category-title { color: var(--c-comunicacao); border-color: var(--c-comunicacao); }
     [data-category="resolucao"] .category-title { color: var(--c-resolucao); border-color: var(--c-resolucao); }
     [data-category="processos"] .category-title { color: var(--c-processos); border-color: var(--c-processos); }
+    
     .criterion-card {
       display: flex; justify-content: space-between; align-items: center; padding: 1rem;
       background: var(--c-card-bg); border: 1px solid var(--c-border); border-left-width: 5px;
@@ -60,6 +90,7 @@
       font-size: 0.7rem; font-weight: 600; text-transform: uppercase;
       background-color: #fdeaea; padding: 2px 6px; border-radius: 4px; vertical-align: middle; margin-left: 8px;
     }
+    
     .hidden-toggle { opacity: 0; position: absolute; width: 0; height: 0; }
     .custom-toggle {
       cursor: pointer; position: relative; display: inline-block;
@@ -76,27 +107,6 @@
     [data-category="resolucao"] .hidden-toggle:checked + .custom-toggle { background-color: var(--c-resolucao); }
     [data-category="processos"] .hidden-toggle:checked + .custom-toggle { background-color: var(--c-processos); }
     .criterion-card.critical .hidden-toggle:checked + .custom-toggle { background-color: var(--c-critical); }
-    
-    .simulator-footer {
-      position: sticky; bottom: 0; left: 0; right: 0;
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 1rem 1.5rem;
-      background: rgba(255, 255, 255, 0.8);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      border-top: 1px solid var(--c-border);
-    }
-    #resetButton {
-      font-size: 0.9rem; font-weight: 600; color: var(--c-text-secondary);
-      background: transparent; border: none; cursor: pointer; padding: 0.5rem;
-    }
-    .score-display { text-align: right; }
-    .score-label { font-size: 1rem; color: var(--c-text-secondary); font-weight: 600; }
-    #totalScore {
-      display: block; font-size: 2.8rem; font-weight: 700;
-      color: var(--c-text-primary); transition: color 0.3s ease;
-    }
-    #totalScore.critical-score { color: var(--c-critical); }
   </style>
 </head>
 <body>
@@ -104,11 +114,18 @@
   <div class="simulator-container">
     <header class="simulator-header">
       <h1>Simulador de Nota de Monitoria CX</h1>
-      <p>Toda monitoria começa com 100%. Marque os erros para ver o impacto na nota.</p>
+      <div class="score-display">
+        <button id="resetButton">Reiniciar</button>
+        <div class="score-details">
+          <span class="score-label">Nota Final</span>
+          <span id="totalScore">100%</span>
+        </div>
+      </div>
     </header>
 
     <main class="criteria-area">
-     
+        <p style="text-align: center; color: var(--c-text-secondary); margin-top: 0;">Toda monitoria começa com 100%. Marque os erros abaixo para ver o impacto na nota.</p>
+      
       <section class="category-section" data-category="comunicacao">
         <h2 class="category-title">Comunicação</h2>
         <div class="criterion-card" data-points="5">
@@ -144,7 +161,7 @@
           <div class="card-action"><span class="points">-20</span><input type="checkbox" id="c7" class="hidden-toggle"><label for="c7" class="custom-toggle"></label></div>
         </div>
       </section>
-      
+
       <section class="category-section" data-category="processos">
         <h2 class="category-title">Processos</h2>
          <div class="criterion-card" data-points="5">
@@ -181,14 +198,6 @@
         </div>
       </section>
     </main>
-
-    <footer class="simulator-footer">
-       <button id="resetButton">Reiniciar</button>
-      <div class="score-display">
-        <span class="score-label">Nota Final</span>
-        <span id="totalScore">100%</span>
-      </div>
-    </footer>
   </div>
 
   <script>
@@ -214,9 +223,6 @@
 
         if (isCritical) {
           score = 0;
-          totalScoreElement.classList.add('critical-score');
-        } else {
-          totalScoreElement.classList.remove('critical-score');
         }
 
         score = Math.max(0, score); 
