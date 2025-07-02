@@ -5,40 +5,26 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Simulador de Nota de Monitoria CX</title>
   
-
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 
   <style>
     :root {
-      --c-comunicacao: #4a86e8; 
-      --c-resolucao: #6aa84f; 
-      --c-processos: #a64d79; 
+      --c-comunicacao: #4a86e8; --c-resolucao: #6aa84f; --c-processos: #a64d79;
       --c-critical: #d7263d; --c-text-primary: #121826; --c-text-secondary: #6c757d;
       --c-bg: #f3f4f6; --c-card-bg: #ffffff; --c-border: #e5e7eb;
-      --score-ok: #28a745; --score-warn: #ffc107; --score-danger: #d7263d;
     }
-
-    @keyframes pop-in {
-      0% { transform: scale(0.8); opacity: 0; }
-      75% { transform: scale(1.1); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    body, html {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    .simulator-body {
-      font-family: 'Inter', sans-serif; background-color: var(--c-bg); padding: 2rem;
-      display: flex; justify-content: center; align-items: flex-start; min-height: 100vh;
+    html { box-sizing: border-box; }
+    *, *:before, *:after { box-sizing: inherit; }
+    body {
+      font-family: 'Inter', sans-serif; background-color: var(--c-bg);
+      margin: 0; padding: 2rem;
     }
     .simulator-container {
       width: 100%; max-width: 720px; background-color: var(--c-card-bg);
-      border-radius: 20px; box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.15); overflow: hidden;
+      border-radius: 20px; box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.1);
+      margin: auto; overflow: hidden;
     }
     .simulator-header {
       padding: 2rem; color: white; text-align: center;
@@ -46,7 +32,7 @@
     }
     .simulator-header h1 { margin: 0 0 0.5rem; font-size: 1.75rem; }
     .simulator-header p { margin: 0; opacity: 0.9; font-size: 1rem; max-width: 500px; margin-inline: auto; }
-    .criteria-area { padding: 1.5rem 1.5rem 18rem 1.5rem; }
+    .criteria-area { padding: 1.5rem 1.5rem 8rem 1.5rem; /* Espaço para o footer flutuante */ }
     .category-title {
       font-size: 1rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;
       margin: 1.5rem 0 1rem 0; padding-bottom: 0.5rem; border-bottom: 2px solid;
@@ -90,147 +76,125 @@
     [data-category="resolucao"] .hidden-toggle:checked + .custom-toggle { background-color: var(--c-resolucao); }
     [data-category="processos"] .hidden-toggle:checked + .custom-toggle { background-color: var(--c-processos); }
     .criterion-card.critical .hidden-toggle:checked + .custom-toggle { background-color: var(--c-critical); }
-
+    
     .simulator-footer {
       position: sticky; bottom: 0; left: 0; right: 0;
-      display: flex; flex-direction: column; align-items: center;
-      gap: 1.5rem; padding: 1.5rem 1.5rem 2rem;
-      background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px); border-top: 1px solid rgba(229, 231, 235, 0.8);
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 1rem 1.5rem;
+      background: rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-top: 1px solid var(--c-border);
     }
     #resetButton {
-      font-size: 1rem; font-weight: 600; color: var(--c-text-secondary);
-      background-color: var(--c-border); border: none; cursor: pointer;
-      padding: 0.75rem 1.5rem; border-radius: 8px; transition: background-color 0.2s, color 0.2s;
+      font-size: 0.9rem; font-weight: 600; color: var(--c-text-secondary);
+      background: transparent; border: none; cursor: pointer; padding: 0.5rem;
     }
-    #resetButton:hover { background-color: var(--c-text-secondary); color: white; }
-    .score-container { position: relative; }
-    .score-chart {
-      width: 180px; height: 180px; border-radius: 50%;
-      display: grid; place-items: center;
-      background: radial-gradient(closest-side, white 79%, transparent 80% 100%),
-                  conic-gradient(var(--chart-color, var(--score-ok)) calc(var(--score) * 1%), #e5e7eb 0);
-      transition: background 0.3s;
-    }
-    .score-chart.ok { --chart-color: var(--score-ok); }
-    .score-chart.warn { --chart-color: var(--score-warn); }
-    .score-chart.danger { --chart-color: var(--score-danger); }
-    .score-center { text-align: center; }
-    #totalScore {
-      display: block; font-size: 3.5rem; font-weight: 800;
-      color: var(--c-text-primary);
-    }
-    #totalScore.animate { animation: pop-in 0.5s ease-out; }
+    .score-display { text-align: right; }
     .score-label { font-size: 1rem; color: var(--c-text-secondary); font-weight: 600; }
-
+    #totalScore {
+      display: block; font-size: 2.8rem; font-weight: 700;
+      color: var(--c-text-primary); transition: color 0.3s ease;
+    }
+    #totalScore.critical-score { color: var(--c-critical); }
   </style>
 </head>
 <body>
 
-  <div class="simulator-body">
-    <div class="simulator-container">
-      <header class="simulator-header">
-        <h1>Simulador de Nota de Monitoria CX</h1>
-        <p>Toda monitoria começa com 100%. Marque os erros para ver o impacto na nota.</p>
-      </header>
-  
-      <main class="criteria-area">
-  
-        <section class="category-section" data-category="comunicacao">
-          <h2 class="category-title">Comunicação</h2>
-          <div class="criterion-card" data-points="5">
-            <div class="card-info"><h3>Erros de Escrita</h3><p>Houve erros graves de ortografia/gramática.</p></div>
-            <div class="card-action"><span class="points">-5</span><input type="checkbox" id="c1" class="hidden-toggle"><label for="c1" class="custom-toggle"></label></div>
-          </div>
-          <div class="criterion-card" data-points="5">
-            <div class="card-info"><h3>Personalização</h3><p>Não incluiu saudação e finalização personalizadas.</p></div>
-            <div class="card-action"><span class="points">-5</span><input type="checkbox" id="c2" class="hidden-toggle"><label for="c2" class="custom-toggle"></label></div>
-          </div>
-          <div class="criterion-card" data-points="5">
-            <div class="card-info"><h3>Credibilidade e Clareza</h3><p>Não passou credibilidade, clareza ou boa didática.</p></div>
-            <div class="card-action"><span class="points">-5</span><input type="checkbox" id="c3" class="hidden-toggle"><label for="c3" class="custom-toggle"></label></div>
-          </div>
-          <div class="criterion-card critical" data-points="100" data-critical="true">
-            <div class="card-info"><h3>Tom de Voz Inadequado <span class="critical-tag">Crítico</span></h3><p>Indisposição, falta de flexibilidade e/ou linguagem grosseira.</p></div>
-            <div class="card-action"><span class="points">Zera</span><input type="checkbox" id="c4" class="hidden-toggle"><label for="c4" class="custom-toggle"></label></div>
-          </div>
-        </section>
-  
-    
-        <section class="category-section" data-category="resolucao">
-          <h2 class="category-title">Postura e Resolução</h2>
-          <div class="criterion-card critical" data-points="100" data-critical="true">
-            <div class="card-info"><h3>Resolução do Problema <span class="critical-tag">Crítico</span></h3><p>O problema/dúvida não foi endereçado com sucesso e clareza.</p></div>
-            <div class="card-action"><span class="points">Zera</span><input type="checkbox" id="c5" class="hidden-toggle"><label for="c5" class="custom-toggle"></label></div>
-          </div>
-          <div class="criterion-card critical" data-points="100" data-critical="true">
-            <div class="card-info"><h3>Geração de Recontato <span class="critical-tag">Crítico</span></h3><p>Propôs soluções que geram recontato (mudança de canal, etc).</p></div>
-            <div class="card-action"><span class="points">Zera</span><input type="checkbox" id="c6" class="hidden-toggle"><label for="c6" class="custom-toggle"></label></div>
-          </div>
-          <div class="criterion-card" data-points="20">
-            <div class="card-info"><h3>Negociação de Tempo</h3><p>Não fez negociação de tempo de ausência ou repactuação de SLA.</p></div>
-            <div class="card-action"><span class="points">-20</span><input type="checkbox" id="c7" class="hidden-toggle"><label for="c7" class="custom-toggle"></label></div>
-          </div>
-        </section>
-  
-  
-        <section class="category-section" data-category="processos">
-          <h2 class="category-title">Processos</h2>
-           <div class="criterion-card" data-points="5">
-            <div class="card-info"><h3>Solicitação de Dados</h3><p>Não solicitou os dados essenciais ou checagem de histórico.</p></div>
-            <div class="card-action"><span class="points">-5</span><input type="checkbox" id="c8" class="hidden-toggle"><label for="c8" class="custom-toggle"></label></div>
-          </div>
-          <div class="criterion-card" data-points="5">
-            <div class="card-info"><h3>Fusão de Tickets</h3><p>Não fundiu os tickets quando necessário.</p></div>
-            <div class="card-action"><span class="points">-5</span><input type="checkbox" id="c9" class="hidden-toggle"><label for="c9" class="custom-toggle"></label></div>
-          </div>
-          <div class="criterion-card" data-points="10">
-            <div class="card-info"><h3>Preenchimento da Organização</h3><p>Não realizou o preenchimento correto da organização.</p></div>
-            <div class="card-action"><span class="points">-10</span><input type="checkbox" id="c10" class="hidden-toggle"><label for="c10" class="custom-toggle"></label></div>
-          </div>
-           <div class="criterion-card" data-points="10">
-            <div class="card-info"><h3>Categorização de Ticket</h3><p>Não categorizou o ticket corretamente.</p></div>
-            <div class="card-action"><span class="points">-10</span><input type="checkbox" id="c11" class="hidden-toggle"><label for="c11" class="custom-toggle"></label></div>
-          </div>
-          <div class="criterion-card" data-points="10">
-            <div class="card-info"><h3>Processo de Call Técnica</h3><p>Não seguiu o processo de call técnica.</p></div>
-            <div class="card-action"><span class="points">-10</span><input type="checkbox" id="c12" class="hidden-toggle"><label for="c12" class="custom-toggle"></label></div>
-          </div>
-          <div class="criterion-card" data-points="25">
-            <div class="card-info"><h3>Seguir Processos e Fluxos</h3><p>Não seguiu processos, fluxos ou registro de informações.</p></div>
-            <div class="card-action"><span class="points">-25</span><input type="checkbox" id="c13" class="hidden-toggle"><label for="c13" class="custom-toggle"></label></div>
-          </div>
-           <div class="criterion-card critical" data-points="100" data-critical="true">
-            <div class="card-info"><h3>Falha de Segurança <span class="critical-tag">Crítico</span></h3><p>Cliente não autorizado ou procedimento de segurança não seguido.</p></div>
-            <div class="card-action"><span class="points">Zera</span><input type="checkbox" id="c14" class="hidden-toggle"><label for="c14" class="custom-toggle"></label></div>
-          </div>
-           <div class="criterion-card critical" data-points="100" data-critical="true">
-            <div class="card-info"><h3>Escalonamento Indevido <span class="critical-tag">Crítico</span></h3><p>Informações necessárias para escalonamento não foram preenchidas.</p></div>
-            <div class="card-action"><span class="points">Zera</span><input type="checkbox" id="c15" class="hidden-toggle"><label for="c15" class="custom-toggle"></label></div>
-          </div>
-        </section>
-      </main>
-  
-      <footer class="simulator-footer">
-        <div class="score-container">
-          <div id="score-chart" class="score-chart" style="--score: 100;">
-            <div class="score-center">
-              <span id="totalScore" class="animate">100%</span>
-              <span class="score-label">Nota Final</span>
-            </div>
-          </div>
-        </div>
-        <button id="resetButton">Reiniciar Simulação</button>
-      </footer>
-    </div>
-  </div>
+  <div class="simulator-container">
+    <header class="simulator-header">
+      <h1>Simulador de Nota de Monitoria CX</h1>
+      <p>Toda monitoria começa com 100%. Marque os erros para ver o impacto na nota.</p>
+    </header>
 
+    <main class="criteria-area">
+     
+      <section class="category-section" data-category="comunicacao">
+        <h2 class="category-title">Comunicação</h2>
+        <div class="criterion-card" data-points="5">
+          <div class="card-info"><h3>Erros de Escrita</h3><p>Houve erros graves de ortografia/gramática.</p></div>
+          <div class="card-action"><span class="points">-5</span><input type="checkbox" id="c1" class="hidden-toggle"><label for="c1" class="custom-toggle"></label></div>
+        </div>
+        <div class="criterion-card" data-points="5">
+          <div class="card-info"><h3>Personalização</h3><p>Não incluiu saudação e finalização personalizadas.</p></div>
+          <div class="card-action"><span class="points">-5</span><input type="checkbox" id="c2" class="hidden-toggle"><label for="c2" class="custom-toggle"></label></div>
+        </div>
+        <div class="criterion-card" data-points="5">
+          <div class="card-info"><h3>Credibilidade e Clareza</h3><p>Não passou credibilidade, clareza ou boa didática.</p></div>
+          <div class="card-action"><span class="points">-5</span><input type="checkbox" id="c3" class="hidden-toggle"><label for="c3" class="custom-toggle"></label></div>
+        </div>
+        <div class="criterion-card critical" data-points="100" data-critical="true">
+          <div class="card-info"><h3>Tom de Voz Inadequado <span class="critical-tag">Crítico</span></h3><p>Indisposição, falta de flexibilidade e/ou linguagem grosseira.</p></div>
+          <div class="card-action"><span class="points">Zera</span><input type="checkbox" id="c4" class="hidden-toggle"><label for="c4" class="custom-toggle"></label></div>
+        </div>
+      </section>
+
+      <section class="category-section" data-category="resolucao">
+        <h2 class="category-title">Postura e Resolução</h2>
+        <div class="criterion-card critical" data-points="100" data-critical="true">
+          <div class="card-info"><h3>Resolução do Problema <span class="critical-tag">Crítico</span></h3><p>O problema/dúvida não foi endereçado com sucesso e clareza.</p></div>
+          <div class="card-action"><span class="points">Zera</span><input type="checkbox" id="c5" class="hidden-toggle"><label for="c5" class="custom-toggle"></label></div>
+        </div>
+        <div class="criterion-card critical" data-points="100" data-critical="true">
+          <div class="card-info"><h3>Geração de Recontato <span class="critical-tag">Crítico</span></h3><p>Propôs soluções que geram recontato (mudança de canal, etc).</p></div>
+          <div class="card-action"><span class="points">Zera</span><input type="checkbox" id="c6" class="hidden-toggle"><label for="c6" class="custom-toggle"></label></div>
+        </div>
+        <div class="criterion-card" data-points="20">
+          <div class="card-info"><h3>Negociação de Tempo</h3><p>Não fez negociação de tempo de ausência ou repactuação de SLA.</p></div>
+          <div class="card-action"><span class="points">-20</span><input type="checkbox" id="c7" class="hidden-toggle"><label for="c7" class="custom-toggle"></label></div>
+        </div>
+      </section>
+      
+      <section class="category-section" data-category="processos">
+        <h2 class="category-title">Processos</h2>
+         <div class="criterion-card" data-points="5">
+          <div class="card-info"><h3>Solicitação de Dados</h3><p>Não solicitou os dados essenciais ou checagem de histórico.</p></div>
+          <div class="card-action"><span class="points">-5</span><input type="checkbox" id="c8" class="hidden-toggle"><label for="c8" class="custom-toggle"></label></div>
+        </div>
+        <div class="criterion-card" data-points="5">
+          <div class="card-info"><h3>Fusão de Tickets</h3><p>Não fundiu os tickets quando necessário.</p></div>
+          <div class="card-action"><span class="points">-5</span><input type="checkbox" id="c9" class="hidden-toggle"><label for="c9" class="custom-toggle"></label></div>
+        </div>
+        <div class="criterion-card" data-points="10">
+          <div class="card-info"><h3>Preenchimento da Organização</h3><p>Não realizou o preenchimento correto da organização.</p></div>
+          <div class="card-action"><span class="points">-10</span><input type="checkbox" id="c10" class="hidden-toggle"><label for="c10" class="custom-toggle"></label></div>
+        </div>
+         <div class="criterion-card" data-points="10">
+          <div class="card-info"><h3>Categorização de Ticket</h3><p>Não categorizou o ticket corretamente.</p></div>
+          <div class="card-action"><span class="points">-10</span><input type="checkbox" id="c11" class="hidden-toggle"><label for="c11" class="custom-toggle"></label></div>
+        </div>
+        <div class="criterion-card" data-points="10">
+          <div class="card-info"><h3>Processo de Call Técnica</h3><p>Não seguiu o processo de call técnica.</p></div>
+          <div class="card-action"><span class="points">-10</span><input type="checkbox" id="c12" class="hidden-toggle"><label for="c12" class="custom-toggle"></label></div>
+        </div>
+        <div class="criterion-card" data-points="25">
+          <div class="card-info"><h3>Seguir Processos e Fluxos</h3><p>Não seguiu processos, fluxos ou registro de informações.</p></div>
+          <div class="card-action"><span class="points">-25</span><input type="checkbox" id="c13" class="hidden-toggle"><label for="c13" class="custom-toggle"></label></div>
+        </div>
+         <div class="criterion-card critical" data-points="100" data-critical="true">
+          <div class="card-info"><h3>Falha de Segurança <span class="critical-tag">Crítico</span></h3><p>Cliente não autorizado ou procedimento de segurança não seguido.</p></div>
+          <div class="card-action"><span class="points">Zera</span><input type="checkbox" id="c14" class="hidden-toggle"><label for="c14" class="custom-toggle"></label></div>
+        </div>
+         <div class="criterion-card critical" data-points="100" data-critical="true">
+          <div class="card-info"><h3>Escalonamento Indevido <span class="critical-tag">Crítico</span></h3><p>Informações necessárias para escalonamento não foram preenchidas.</p></div>
+          <div class="card-action"><span class="points">Zera</span><input type="checkbox" id="c15" class="hidden-toggle"><label for="c15" class="custom-toggle"></label></div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="simulator-footer">
+       <button id="resetButton">Reiniciar</button>
+      <div class="score-display">
+        <span class="score-label">Nota Final</span>
+        <span id="totalScore">100%</span>
+      </div>
+    </footer>
+  </div>
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const allCards = document.querySelectorAll('.criterion-card');
       const totalScoreElement = document.getElementById('totalScore');
-      const scoreChart = document.getElementById('score-chart');
       const resetButton = document.getElementById('resetButton');
 
       function calculateScore() {
@@ -250,28 +214,13 @@
 
         if (isCritical) {
           score = 0;
+          totalScoreElement.classList.add('critical-score');
+        } else {
+          totalScoreElement.classList.remove('critical-score');
         }
 
         score = Math.max(0, score); 
-    
         totalScoreElement.textContent = score + '%';
-        
-      
-        totalScoreElement.classList.remove('animate');
-        void totalScoreElement.offsetWidth; 
-        totalScoreElement.classList.add('animate');
-
-
-        scoreChart.style.setProperty('--score', score);
-
-        scoreChart.classList.remove('ok', 'warn', 'danger');
-        if (isCritical || score < 70) {
-          scoreChart.classList.add('danger');
-        } else if (score < 85) {
-          scoreChart.classList.add('warn');
-        } else {
-          scoreChart.classList.add('ok');
-        }
       }
 
       function resetSimulator() {
@@ -286,8 +235,6 @@
       });
 
       resetButton.addEventListener('click', resetSimulator);
-
-    
       calculateScore();
     });
   </script>
