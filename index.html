@@ -148,7 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
           placeholder="0"
           class="mt-2 w-full text-2xl font-bold text-indigo-600 bg-slate-50 border-2 border-slate-200 rounded-lg p-2 text-center focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
         />
-        <p class="mt-2 text-xs text-slate-500">Insira o número total de interações que você está avaliando.</p>
+        <p class="mt-2 text-xs text-slate-500">Insira o número total de amostras que você está avaliando.</p>
       </div>
     `;
   };
@@ -256,11 +256,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
       
-      // Update max attribute on all error inputs
+   
       document.querySelectorAll('.error-count-input').forEach(input => input.max = state.totalSamples);
       
       if(needsUIRefresh) {
-        // Redraw cards to reflect capped values
+
         renderCriteria();
       }
 
