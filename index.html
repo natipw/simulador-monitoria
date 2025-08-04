@@ -1,141 +1,324 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Simulador de Nota de Monitoria CX</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <style>
-    body {
-      font-family: 'Inter', sans-serif;
-    }
-    body {
-      padding-top: 1rem;
-    }
-    @media (min-width: 640px) {
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Simulador de Nota de Monitoria CX</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
       body {
-        padding-top: 1.5rem;
+        font-family: "Inter", sans-serif;
       }
-    }
-     @media (min-width: 1024px) {
       body {
-        padding-top: 2rem;
+        padding-top: 1rem;
       }
-    }
-  </style>
-</head>
-<body class="bg-slate-50 min-h-screen font-sans text-slate-800">
-  <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
-
-    <header class="text-white p-6 rounded-2xl shadow-2xl bg-gradient-to-br from-indigo-600 to-purple-700 sticky top-4 sm:top-6 z-50">
-      <div class="flex flex-col sm:flex-row justify-between items-center gap-6">
-        <div>
-          <h1 class="text-3xl font-extrabold">Simulador de Nota de Monitoria CX</h1>
-          <p class="text-indigo-200 mt-1">Calcule a nota média com base no volume de amostras e apontamentos.</p>
-        </div>
-        <div class="flex items-center gap-4 w-full sm:w-auto">
-            <button id="resetButton" class="p-3 bg-white/10 rounded-full hover:bg-white/20 transition-colors duration-200" aria-label="Reiniciar Simulação">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h5M20 20v-5h-5M4 4a15.225 15.225 0 0113.678 5.462A15.334 15.334 0 0120 12M4 12a15.334 15.334 0 011.322-6.538A15.225 15.225 0 018.788 4"></path>
-                </svg>
-            </button>
-            <div class="bg-white/20 p-4 rounded-xl text-center flex-grow">
-                <span class="text-sm uppercase text-indigo-200 tracking-wider font-semibold">Nota Final</span>
-                <div id="finalScoreDisplay" class="text-5xl font-bold text-white tracking-tighter">100<span class="text-3xl opacity-80">%</span></div>
-            </div>
-        </div>
-      </div>
-    </header>
-
-    <main id="main-content" class="mt-8 space-y-8">
-      <div id="control-card-container"></div>
-      
-      <section id="criteria-container" class="space-y-8"></section>
-    </main>
-  </div>
-
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-  const CriterionCategory = {
-    Comunicacao: 'Comunicação',
-    Resolucao: 'Postura e Resolução',
-    Processos: 'Processos',
-  };
-
-  const ALL_CRITERIA = [
-    {id:'c1',title:'Erros de Escrita',description:'Houve erros graves de ortografia/gramática.',points:5,isCritical:false,category:CriterionCategory.Comunicacao},
-    {id:'c2',title:'Personalização',description:'Não incluiu saudação e finalização personalizadas.',points:5,isCritical:false,category:CriterionCategory.Comunicacao},
-    {id:'c3',title:'Credibilidade e Clareza',description:'Não passou credibilidade, clareza ou boa didática.',points:5,isCritical:false,category:CriterionCategory.Comunicacao},
-    {id:'c4',title:'Tom de Voz Inadequado',description:'Indisposição, falta de flexibilidade e/ou linguagem grosseira.',points:100,isCritical:true,category:CriterionCategory.Comunicacao},
-    {id:'c5',title:'Resolução do Problema',description:'O problema/dúvida não foi endereçado com sucesso e clareza.',points:100,isCritical:true,category:CriterionCategory.Resolucao},
-    {id:'c6',title:'Geração de Recontato',description:'Propôs soluções que geram recontato (mudança de canal, etc).',points:100,isCritical:true,category:CriterionCategory.Resolucao},
-    {id:'c7',title:'Negociação de Tempo',description:'Não fez negociação de tempo de ausência ou repactuação de SLA.',points:20,isCritical:false,category:CriterionCategory.Resolucao},
-    {id:'c8',title:'Solicitação de Dados',description:'Não solicitou os dados essenciais ou checagem de histórico.',points:5,isCritical:false,category:CriterionCategory.Processos},
-    {id:'c9',title:'Fusão de Tickets',description:'Não fundiu os tickets quando necessário.',points:5,isCritical:false,category:CriterionCategory.Processos},
-    {id:'c10',title:'Preenchimento da Organização',description:'Não realizou o preenchimento correto da organização.',points:10,isCritical:false,category:CriterionCategory.Processos},
-    {id:'c11',title:'Categorização de Ticket',description:'Não categorizou o ticket corretamente.',points:10,isCritical:false,category:CriterionCategory.Processos},
-    {id:'c12',title:'Processo de Call Técnica',description:'Não seguiu o processo de call técnica.',points:10,isCritical:false,category:CriterionCategory.Processos},
-    {id:'c13',title:'Seguir Processos e Fluxos',description:'Não seguiu processos, fluxos ou registro de informações.',points:25,isCritical:false,category:CriterionCategory.Processos},
-    {id:'c14',title:'Falha de Segurança',description:'Cliente não autorizado ou procedimento de segurança não seguido.',points:100,isCritical:true,category:CriterionCategory.Processos},
-    {id:'c15',title:'Escalonamento Indevido',description:'Informações necessárias para escalonamento não foram preenchidas.',points:100,isCritical:true,category:CriterionCategory.Processos},
-  ];
-
-
-  let state = {
-    totalSamples: 10,
-    errorCounts: {},
-  };
-
-
-  const finalScoreDisplay = document.getElementById('finalScoreDisplay');
-  const resetButton = document.getElementById('resetButton');
-  const mainContent = document.getElementById('main-content');
-  const controlCardContainer = document.getElementById('control-card-container');
-  const criteriaContainer = document.getElementById('criteria-container');
-  
-
-  const calculateFinalScore = () => {
-    let totalCriticalCount = 0;
-    let totalDeductions = 0;
-
-    for (const id in state.errorCounts) {
-      const count = state.errorCounts[id] || 0;
-      if (count > 0) {
-        const criterion = ALL_CRITERIA.find(c => c.id === id);
-        if (criterion) {
-          if (criterion.isCritical) {
-            totalCriticalCount += count;
-          } else {
-            totalDeductions += count * criterion.points;
-          }
+      @media (min-width: 640px) {
+        body {
+          padding-top: 1.5rem;
         }
       }
-    }
-    
-    if (!state.totalSamples || state.totalSamples <= 0) {
-      return 100;
-    }
+      @media (min-width: 1024px) {
+        body {
+          padding-top: 2rem;
+        }
+      }
+    </style>
+  </head>
+  <body class="bg-slate-50 min-h-screen font-sans text-slate-800">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
+      <header
+        class="text-white p-6 rounded-2xl shadow-2xl bg-gradient-to-br from-indigo-600 to-purple-700 sticky top-4 sm:top-6 z-50"
+      >
+        <div
+          class="flex flex-col sm:flex-row justify-between items-center gap-6"
+        >
+          <div>
+            <h1 class="text-3xl font-extrabold">
+              Simulador de Nota de Monitoria CX
+            </h1>
+            <p class="text-indigo-200 mt-1">
+              Calcule a nota média com base no volume de amostras e
+              apontamentos.
+            </p>
+          </div>
+          <div class="flex items-center gap-4 w-full sm:w-auto">
+            <button
+              id="resetButton"
+              class="p-3 bg-white/10 rounded-full hover:bg-white/20 transition-colors duration-200"
+              aria-label="Reiniciar Simulação"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="w-6 h-6 text-white"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M4 4v5h5M20 20v-5h-5M4 4a15.225 15.225 0 0113.678 5.462A15.334 15.334 0 0120 12M4 12a15.334 15.334 0 011.322-6.538A15.225 15.225 0 018.788 4"
+                ></path>
+              </svg>
+            </button>
+            <div class="bg-white/20 p-4 rounded-xl text-center flex-grow">
+              <span
+                class="text-sm uppercase text-indigo-200 tracking-wider font-semibold"
+                >Nota Final</span
+              >
+              <div
+                id="finalScoreDisplay"
+                class="text-5xl font-bold text-white tracking-tighter"
+              >
+                100<span class="text-3xl opacity-80">%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
 
-    const cappedCriticalSamples = Math.min(state.totalSamples, totalCriticalCount);
-    const passingSamples = state.totalSamples - cappedCriticalSamples;
-    const totalPointsOfPassingSamples = passingSamples * 100 - totalDeductions;
-    const finalTotalPoints = Math.max(0, totalPointsOfPassingSamples);
-    const averageScore = finalTotalPoints / state.totalSamples;
+      <main id="main-content" class="mt-8 space-y-8">
+        <div id="control-card-container"></div>
 
-    return parseFloat(averageScore.toFixed(2));
-  };
+        <section id="criteria-container" class="space-y-8"></section>
+      </main>
+    </div>
 
-  const updateUI = () => {
-    const score = calculateFinalScore();
-    finalScoreDisplay.innerHTML = `${score}<span class="text-3xl opacity-80">%</span>`;
-  };
-  
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const CriterionCategory = {
+          Comunicacao: "Comunicação",
+          Resolucao: "Postura e Resolução",
+          Processos: "Processos",
+        };
 
-  const renderControlCard = () => {
-    controlCardContainer.innerHTML = `
+        // --- CRITÉRIOS ATUALIZADOS DE ACORDO COM A IMAGEM ---
+        const ALL_CRITERIA = [
+          // Comunicação
+          {
+            id: "c1",
+            title: "Escrita Sem Erros Graves",
+            description: "Interação sem erros graves de ortografia/gramática?",
+            points: 5,
+            isCritical: false,
+            category: CriterionCategory.Comunicacao,
+          },
+          {
+            id: "c2",
+            title: "Personalização de contato",
+            description:
+              "Interação incluiu personalização de contato, incluindo saudação e finalização",
+            points: 5,
+            isCritical: false,
+            category: CriterionCategory.Comunicacao,
+          },
+          {
+            id: "c3",
+            title: "Credibilidade e Clareza na Comunicação",
+            description:
+              "Passou credibilidade na comunicação, utilizando expressões adequadas, com clareza, confiança e boa didática ao argumentar e explicar o tema.",
+            points: 10,
+            isCritical: false,
+            category: CriterionCategory.Comunicacao,
+          },
+          {
+            id: "c4",
+            title: "Tom de voz inadequado",
+            description:
+              "Tom de voz inadequado, com indisposição, falta de flexibilidade e/ou linguagem grosseira.",
+            points: 100,
+            isCritical: true,
+            category: CriterionCategory.Comunicacao,
+          },
+
+          // Postura e Resolução
+          {
+            id: "c5",
+            title: "Problema/Dúvida endereçado com sucesso",
+            description:
+              "A tratativa não foi endereçada com sucesso, a falha do Unico não foi corrigida ou o cliente não foi orientado.",
+            points: 100,
+            isCritical: true,
+            category: CriterionCategory.Resolucao,
+          },
+          {
+            id: "c6",
+            title: "Mudança de canal",
+            description:
+              "Durante o atendimento, propôs soluções que geram recontato (mudança de canal, etc).",
+            points: 100,
+            isCritical: true,
+            category: CriterionCategory.Resolucao,
+          },
+          {
+            id: "c7",
+            title: "Negociação de Tempo",
+            description:
+              "Não fez negociação do tempo de ausência ou repactuação de SLA se necessário?",
+            points: 10,
+            isCritical: false,
+            category: CriterionCategory.Resolucao,
+          },
+
+          // Processos
+          {
+            id: "c8",
+            title: "Solicitação de Dados Essenciais",
+            description:
+              "Não solicitou os dados essenciais para seguir com atendimento, além de checagem de histórico, quando necessário.",
+            points: 10,
+            isCritical: false,
+            category: CriterionCategory.Processos,
+          },
+          {
+            id: "c9",
+            title: "Fusão de Tickets",
+            description:
+              "Não fundiu os tickets, seguindo o atendimento do 1º Ticket ou não realizou a fusão de usuários de WhatsApp e Zendesk.",
+            points: 5,
+            isCritical: false,
+            category: CriterionCategory.Processos,
+          },
+          {
+            id: "c10",
+            title: "Preenchimentos Internos",
+            description:
+              "Não realizou os preenchimentos internos (organização, usuários, flags).",
+            points: 5,
+            isCritical: false,
+            category: CriterionCategory.Processos,
+          },
+          {
+            id: "c11",
+            title: "Categorização de Ticket",
+            description: "Não categorizou o ticket corretamente.",
+            points: 10,
+            isCritical: false,
+            category: CriterionCategory.Processos,
+          },
+          {
+            id: "c12",
+            title: "Processo de Call Técnica",
+            description: "Não seguiu processo de call técnica.",
+            points: 10,
+            isCritical: false,
+            category: CriterionCategory.Processos,
+          },
+          {
+            id: "c13",
+            title: "Seguir Processos e Fluxos Definidos",
+            description:
+              "Não seguiu corretamente os processos e fluxos definidos, incluindo registro de informações e encaminhamentos.",
+            points: 15,
+            isCritical: false,
+            category: CriterionCategory.Processos,
+          },
+          {
+            id: "c14",
+            title: "Falha de Segurança",
+            description:
+              "O cliente não era autorizado para aquele atendimento ou não seguimos o procedimento de segurança quando aplicável.",
+            points: 100,
+            isCritical: true,
+            category: CriterionCategory.Processos,
+          },
+          {
+            id: "c15",
+            title: "Escalonamento Inadequado",
+            description:
+              "Em casos escalados, as informações necessárias não foram preenchidas ou o escalonamento não foi devido.",
+            points: 15,
+            isCritical: false,
+            category: CriterionCategory.Processos,
+          },
+        ];
+
+        let state = {
+          totalSamples: 10,
+          errorCounts: {},
+        };
+
+        const finalScoreDisplay = document.getElementById("finalScoreDisplay");
+        const resetButton = document.getElementById("resetButton");
+        const mainContent = document.getElementById("main-content");
+        const controlCardContainer = document.getElementById(
+          "control-card-container"
+        );
+        const criteriaContainer = document.getElementById("criteria-container");
+
+        // --- FUNÇÃO DE CÁLCULO ATUALIZADA ---
+        const calculateFinalScore = () => {
+          // Define o valor do teto normalizante
+          const NORMALIZING_CEILING = 0.96;
+
+          let totalCriticalCount = 0;
+          let totalDeductions = 0;
+
+          for (const id in state.errorCounts) {
+            const count = state.errorCounts[id] || 0;
+            if (count > 0) {
+              const criterion = ALL_CRITERIA.find((c) => c.id === id);
+              if (criterion) {
+                if (criterion.isCritical) {
+                  // Conta a quantidade total de erros críticos
+                  totalCriticalCount += count;
+                } else {
+                  // Soma as deduções dos erros não-críticos
+                  totalDeductions += count * criterion.points;
+                }
+              }
+            }
+          }
+
+          // Se não houver amostras, a nota é 100%
+          if (!state.totalSamples || state.totalSamples <= 0) {
+            return 100;
+          }
+
+          // Garante que o número de amostras zeradas não exceda o total de amostras
+          const cappedCriticalSamples = Math.min(
+            state.totalSamples,
+            totalCriticalCount
+          );
+
+          // Amostras que não foram zeradas por erros críticos
+          const nonCriticalSamples = state.totalSamples - cappedCriticalSamples;
+
+          // Pontuação total das amostras não-críticas, já com as deduções
+          const totalPointsOfNonCriticalSamples =
+            nonCriticalSamples * 100 - totalDeductions;
+
+          // A pontuação total não pode ser negativa. Amostras com erros críticos valem 0 pontos.
+          const finalTotalPoints = Math.max(0, totalPointsOfNonCriticalSamples);
+
+          // Calcula a média base
+          const baseAverage = finalTotalPoints / state.totalSamples;
+
+          let finalScore = baseAverage;
+
+          // Aplica o "Teto Normalizante" se houver pelo menos um erro crítico
+          if (totalCriticalCount > 0) {
+            finalScore = baseAverage * NORMALIZING_CEILING;
+          }
+
+          // Retorna a nota final arredondada para 2 casas decimais
+          return parseFloat(finalScore.toFixed(2));
+        };
+
+        const updateUI = () => {
+          const score = calculateFinalScore();
+          finalScoreDisplay.innerHTML = `${score}<span class="text-3xl opacity-80">%</span>`;
+        };
+
+        const renderControlCard = () => {
+          controlCardContainer.innerHTML = `
       <div class="bg-white p-5 rounded-xl shadow-md border border-slate-200">
         <label for="total-samples" class="block text-sm font-semibold text-slate-700">
           Quantidade Total de Amostras
@@ -143,83 +326,106 @@ document.addEventListener('DOMContentLoaded', () => {
         <input
           type="number"
           id="total-samples"
-          value="${state.totalSamples === 0 ? '' : state.totalSamples}"
+          value="${state.totalSamples === 0 ? "" : state.totalSamples}"
           min="0"
           placeholder="0"
           class="mt-2 w-full text-2xl font-bold text-indigo-600 bg-slate-50 border-2 border-slate-200 rounded-lg p-2 text-center focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
         />
-        <p class="mt-2 text-xs text-slate-500">Insira o número total de amostras que você está avaliando.</p>
+        <p class="mt-2 text-xs text-slate-500">Insira o número total de amostras (auditorias) que você está avaliando.</p>
       </div>
     `;
-  };
+        };
 
-  const renderCriteria = () => {
-    const groupedCriteria = ALL_CRITERIA.reduce((acc, criterion) => {
-      const category = criterion.category;
-      if (!acc[category]) acc[category] = [];
-      acc[category].push(criterion);
-      return acc;
-    }, {});
+        const renderCriteria = () => {
+          const groupedCriteria = ALL_CRITERIA.reduce((acc, criterion) => {
+            const category = criterion.category;
+            if (!acc[category]) acc[category] = [];
+            acc[category].push(criterion);
+            return acc;
+          }, {});
 
-    criteriaContainer.innerHTML = ''; 
+          criteriaContainer.innerHTML = "";
 
-    const categoryStyles = {
-        [CriterionCategory.Comunicacao]: 'text-blue-600 border-blue-200',
-        [CriterionCategory.Resolucao]: 'text-emerald-600 border-emerald-200',
-        [CriterionCategory.Processos]: 'text-purple-600 border-purple-200',
-    };
+          const categoryStyles = {
+            [CriterionCategory.Comunicacao]: "text-blue-600 border-blue-200",
+            [CriterionCategory.Resolucao]:
+              "text-emerald-600 border-emerald-200",
+            [CriterionCategory.Processos]: "text-purple-600 border-purple-200",
+          };
 
-    for (const category in groupedCriteria) {
-        const sectionEl = document.createElement('div');
-        
-        const titleEl = document.createElement('h2');
-        titleEl.className = `text-xl font-bold mb-4 pb-2 border-b-2 ${categoryStyles[category]}`;
-        titleEl.textContent = category;
-        sectionEl.appendChild(titleEl);
+          for (const category in groupedCriteria) {
+            const sectionEl = document.createElement("div");
 
-        const cardsContainer = document.createElement('div');
-        cardsContainer.className = 'space-y-4';
+            const titleEl = document.createElement("h2");
+            titleEl.className = `text-xl font-bold mb-4 pb-2 border-b-2 ${categoryStyles[category]}`;
+            titleEl.textContent = category;
+            sectionEl.appendChild(titleEl);
 
-        groupedCriteria[category].forEach(criterion => {
-            cardsContainer.innerHTML += createCriterionCardHTML(criterion);
-        });
+            const cardsContainer = document.createElement("div");
+            cardsContainer.className = "space-y-4";
 
-        sectionEl.appendChild(cardsContainer);
-        criteriaContainer.appendChild(sectionEl);
-    }
-  };
+            groupedCriteria[category].forEach((criterion) => {
+              cardsContainer.innerHTML += createCriterionCardHTML(criterion);
+            });
 
-  const createCriterionCardHTML = (criterion) => {
-    const { id, title, description, points, isCritical, category } = criterion;
-    const count = state.errorCounts[id] || 0;
+            sectionEl.appendChild(cardsContainer);
+            criteriaContainer.appendChild(sectionEl);
+          }
+        };
 
-    const catStyles = {
-        [CriterionCategory.Comunicacao]: { border: 'border-blue-500', text: 'text-blue-600' },
-        [CriterionCategory.Resolucao]: { border: 'border-emerald-500', text: 'text-emerald-600' },
-        [CriterionCategory.Processos]: { border: 'border-purple-500', text: 'text-purple-600' },
-    };
+        const createCriterionCardHTML = (criterion) => {
+          const { id, title, description, points, isCritical, category } =
+            criterion;
+          const count = state.errorCounts[id] || 0;
 
-    const critStyles = { 
-        border: 'border-rose-500', 
-        text: 'text-rose-600', 
-        bg: 'bg-rose-50', 
-        descriptionText: 'text-rose-700',
-        input: 'border-rose-200 text-rose-600 focus:ring-rose-500 focus:border-rose-500'
-    };
-    
-    const normalInputStyles = 'border-slate-200 text-indigo-600 focus:ring-indigo-500 focus:border-indigo-500';
+          const catStyles = {
+            [CriterionCategory.Comunicacao]: {
+              border: "border-blue-500",
+              text: "text-blue-600",
+            },
+            [CriterionCategory.Resolucao]: {
+              border: "border-emerald-500",
+              text: "text-emerald-600",
+            },
+            [CriterionCategory.Processos]: {
+              border: "border-purple-500",
+              text: "text-purple-600",
+            },
+          };
 
-    const styles = catStyles[category];
-    const cardClasses = `rounded-xl shadow-md border border-l-4 p-4 flex items-center justify-between gap-4 transition-shadow hover:shadow-lg ${isCritical ? `${critStyles.bg} ${critStyles.border}` : `bg-white ${styles.border}`}`;
+          const critStyles = {
+            border: "border-rose-500",
+            text: "text-rose-600",
+            bg: "bg-rose-50",
+            descriptionText: "text-rose-700",
+            input:
+              "border-rose-200 text-rose-600 focus:ring-rose-500 focus:border-rose-500",
+          };
 
-    return `
+          const normalInputStyles =
+            "border-slate-200 text-indigo-600 focus:ring-indigo-500 focus:border-indigo-500";
+
+          const styles = catStyles[category];
+          const cardClasses = `rounded-xl shadow-md border border-l-4 p-4 flex items-center justify-between gap-4 transition-shadow hover:shadow-lg ${
+            isCritical
+              ? `${critStyles.bg} ${critStyles.border}`
+              : `bg-white ${styles.border}`
+          }`;
+
+          return `
       <div class="${cardClasses}">
         <div class="flex-1">
            <h3 class="font-bold text-slate-800 flex items-center gap-2">
-              ${isCritical ? '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-rose-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>' : ''}
+              ${
+                isCritical
+                  ? '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-rose-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>'
+                  : ""
+              }
               ${title}
           </h3>
-          <p class="text-sm mt-1 ${isCritical ? critStyles.descriptionText : 'text-slate-500'}">
+          <p class="text-sm mt-1 ${
+            isCritical ? critStyles.descriptionText : "text-slate-500"
+          }">
             ${description}
           </p>
         </div>
@@ -227,78 +433,82 @@ document.addEventListener('DOMContentLoaded', () => {
           <input
             type="number"
             data-id="${id}"
-            value="${count === 0 ? '' : count}"
+            value="${count === 0 ? "" : count}"
             min="0"
             max="${state.totalSamples}"
             placeholder="0"
             aria-label="Contagem de ${title}"
-            class="error-count-input w-20 text-center text-xl font-bold bg-slate-100 border-2 rounded-lg p-2 focus:outline-none focus:ring-2 transition ${isCritical ? critStyles.input : normalInputStyles }"
+            class="error-count-input w-20 text-center text-xl font-bold bg-slate-100 border-2 rounded-lg p-2 focus:outline-none focus:ring-2 transition ${
+              isCritical ? critStyles.input : normalInputStyles
+            }"
           />
-          ${isCritical ? `<span class="text-xs mt-1.5 font-semibold ${critStyles.text}">Zera a amostra</span>` : `<span class="text-xs mt-1.5 font-semibold text-slate-500">-${points} pontos</span>`}
+          ${
+            isCritical
+              ? `<span class="text-xs mt-1.5 font-semibold ${critStyles.text}">Zera a amostra</span>`
+              : `<span class="text-xs mt-1.5 font-semibold text-slate-500">-${points} pontos</span>`
+          }
         </div>
       </div>
     `;
-  };
+        };
 
+        const handleStateChange = (e) => {
+          const target = e.target;
+          if (target.id === "total-samples") {
+            let value = parseInt(target.value, 10);
+            state.totalSamples = isNaN(value) || value < 0 ? 0 : value;
 
-  const handleStateChange = (e) => {
-    const target = e.target;
-    if (target.id === 'total-samples') {
-      let value = parseInt(target.value, 10);
-      state.totalSamples = isNaN(value) || value < 0 ? 0 : value;
+            let needsUIRefresh = false;
+            for (const id in state.errorCounts) {
+              if (state.errorCounts[id] > state.totalSamples) {
+                state.errorCounts[id] = state.totalSamples;
+                needsUIRefresh = true;
+              }
+            }
 
-  
-      let needsUIRefresh = false;
-      for (const id in state.errorCounts) {
-        if (state.errorCounts[id] > state.totalSamples) {
-          state.errorCounts[id] = state.totalSamples;
-          needsUIRefresh = true;
-        }
-      }
-      
-   
-      document.querySelectorAll('.error-count-input').forEach(input => input.max = state.totalSamples);
-      
-      if(needsUIRefresh) {
+            document
+              .querySelectorAll(".error-count-input")
+              .forEach((input) => (input.max = state.totalSamples));
 
+            if (needsUIRefresh) {
+              renderCriteria();
+            }
+          } else if (target.matches(".error-count-input")) {
+            const id = target.dataset.id;
+            let value = parseInt(target.value, 10);
+
+            if (isNaN(value) || value < 0) {
+              value = 0;
+            }
+            if (value > state.totalSamples) {
+              value = state.totalSamples;
+              target.value = value;
+            }
+
+            if (value === 0) {
+              delete state.errorCounts[id];
+            } else {
+              state.errorCounts[id] = value;
+            }
+          }
+          updateUI();
+        };
+
+        const handleReset = () => {
+          state.totalSamples = 10;
+          state.errorCounts = {};
+          renderControlCard();
+          renderCriteria();
+          updateUI();
+        };
+
+        mainContent.addEventListener("input", handleStateChange);
+        resetButton.addEventListener("click", handleReset);
+
+        renderControlCard();
         renderCriteria();
-      }
-
-    } else if (target.matches('.error-count-input')) {
-      const id = target.dataset.id;
-      let value = parseInt(target.value, 10);
-      
-      if (isNaN(value) || value < 0) { value = 0; }
-      if (value > state.totalSamples) {
-        value = state.totalSamples;
-        target.value = value;
-      }
-
-      if (value === 0) {
-        delete state.errorCounts[id];
-      } else {
-        state.errorCounts[id] = value;
-      }
-    }
-    updateUI();
-  };
-
-  const handleReset = () => {
-    state.totalSamples = 10;
-    state.errorCounts = {};
-    renderControlCard();
-    renderCriteria();
-    updateUI();
-  };
-  
-
-  mainContent.addEventListener('input', handleStateChange);
-  resetButton.addEventListener('click', handleReset);
-  
-  renderControlCard();
-  renderCriteria();
-  updateUI();
-});
-</script>
-</body>
+        updateUI();
+      });
+    </script>
+  </body>
 </html>
