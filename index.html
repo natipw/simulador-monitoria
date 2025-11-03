@@ -28,6 +28,20 @@
           padding-top: 2rem;
         }
       }
+    
+      select {
+        -moz-appearance: none;
+        text-indent: 0.01px;
+        text-overflow: "";
+      }
+    
+      select::-ms-expand {
+        display: none;
+      }
+      select {
+        -webkit-appearance: none;
+        appearance: none;
+      }
     </style>
   </head>
   <body class="bg-slate-50 min-h-screen font-sans text-slate-800">
@@ -99,9 +113,9 @@
           Processos: "Processos",
         };
 
-        // --- CRITÉRIOS ATUALIZADOS DE ACORDO COM A IMAGEM ---
+       
         const ALL_CRITERIA = [
-          // Comunicação
+        
           {
             id: "c1",
             title: "Escrita Sem Erros Graves",
@@ -138,7 +152,7 @@
             category: CriterionCategory.Comunicacao,
           },
 
-          // Postura e Resolução
+         
           {
             id: "c5",
             title: "Problema/Dúvida endereçado com sucesso",
@@ -167,7 +181,7 @@
             category: CriterionCategory.Resolucao,
           },
 
-          // Processos
+         
           {
             id: "c8",
             title: "Solicitação de Dados Essenciais",
@@ -240,7 +254,7 @@
           },
         ];
 
-        // --- ESTADO INICIAL ATUALIZADO ---
+      
         let state = {
           totalSamples: 10,
           errorCounts: {},
@@ -255,7 +269,7 @@
         );
         const criteriaContainer = document.getElementById("criteria-container");
 
-        
+       
         const calculateFinalScore = () => {
        
           const NORMALIZING_CEILING = 0.96;
@@ -269,43 +283,48 @@
               const criterion = ALL_CRITERIA.find((c) => c.id === id);
               if (criterion) {
                 if (criterion.isCritical) {
-             
+                
                   totalCriticalCount += count;
                 } else {
-             
                   totalDeductions += count * criterion.points;
                 }
               }
             }
           }
 
-       
+          // Se não houver amostras, a nota é 100%
           if (!state.totalSamples || state.totalSamples <= 0) {
             return 100;
           }
 
-        
+          // Garante que o número de amostras zeradas não exceda o total de amostras
           const cappedCriticalSamples = Math.min(
             state.totalSamples,
             totalCriticalCount
           );
 
-   
+          // Amostras que não foram zeradas por erros críticos
           const nonCriticalSamples = state.totalSamples - cappedCriticalSamples;
 
+          // Pontuação total das amostras não-críticas, já com as deduções
           const totalPointsOfNonCriticalSamples =
             nonCriticalSamples * 100 - totalDeductions;
 
+          // A pontuação total não pode ser negativa. Amostras com erros críticos valem 0 pontos.
           const finalTotalPoints = Math.max(0, totalPointsOfNonCriticalSamples);
 
+          // Calcula a média base
           const baseAverage = finalTotalPoints / state.totalSamples;
 
           let finalScore = baseAverage;
 
+          // --- LÓGICA DO TETO ATUALIZADA ---
+          // Aplica o "Teto Normalizante" APENAS para "Família ID" e se houver erro crítico
           if (state.product === "familia-id" && totalCriticalCount > 0) {
             finalScore = baseAverage * NORMALIZING_CEILING;
           }
 
+          // Retorna a nota final arredondada para 2 casas decimais
           return parseFloat(finalScore.toFixed(2));
         };
 
@@ -339,20 +358,20 @@
           </label>
           <select
             id="product-select"
-            class="mt-2 w-full text-lg font-medium text-indigo-600 bg-slate-50 border-2 border-slate-200 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
+            class="mt-2 w-full text-2xl font-bold text-indigo-600 bg-slate-50 border-2 border-slate-200 rounded-lg p-2 text-center focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
           >
             <option value="familia-id" ${
               state.product === "familia-id" ? "selected" : ""
-            }>Família ID (Com Teto)</option>
+            }>Família ID</option>
             <option value="auto" ${
               state.product === "auto" ? "selected" : ""
-            }>Auto (Sem Teto)</option>
+            }>Auto</option>
             <option value="doc" ${
               state.product === "doc" ? "selected" : ""
-            }>Doc (Sem Teto)</option>
+            }>Doc</option>
             <option value="b2c" ${
               state.product === "b2c" ? "selected" : ""
-            }>B2C (Sem Teto)</option>
+            }>B2C</option>
           </select>
         </div>
         </div>
