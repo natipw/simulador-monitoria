@@ -28,19 +28,14 @@
           padding-top: 2rem;
         }
       }
-    
-      select {
-        -moz-appearance: none;
-        text-indent: 0.01px;
-        text-overflow: "";
-      }
-    
-      select::-ms-expand {
-        display: none;
-      }
       select {
         -webkit-appearance: none;
+        -moz-appearance: none;
         appearance: none;
+        padding-right: 2.5rem !important; 
+      }
+      select:invalid {
+        color: #9ca3af; 
       }
     </style>
   </head>
@@ -82,7 +77,7 @@
                 ></path>
               </svg>
             </button>
-            <div class="bg-white/20 p-4 rounded-xl text-center flex-grow">
+            <div class="bg-white/20 p-4 rounded-xl text-center flex-grow min-w-[150px]">
               <span
                 class="text-sm uppercase text-indigo-200 tracking-wider font-semibold"
                 >Nota Final</span
@@ -91,7 +86,7 @@
                 id="finalScoreDisplay"
                 class="text-5xl font-bold text-white tracking-tighter"
               >
-                100<span class="text-3xl opacity-80">%</span>
+                <span class="text-4xl opacity-90">--</span>
               </div>
             </div>
           </div>
@@ -113,9 +108,8 @@
           Processos: "Processos",
         };
 
-       
         const ALL_CRITERIA = [
-        
+          // Comunicação
           {
             id: "c1",
             title: "Escrita Sem Erros Graves",
@@ -152,7 +146,7 @@
             category: CriterionCategory.Comunicacao,
           },
 
-         
+          // Postura e Resolução
           {
             id: "c5",
             title: "Problema/Dúvida endereçado com sucesso",
@@ -181,7 +175,7 @@
             category: CriterionCategory.Resolucao,
           },
 
-         
+          // Processos
           {
             id: "c8",
             title: "Solicitação de Dados Essenciais",
@@ -254,11 +248,11 @@
           },
         ];
 
-      
+        // --- ESTADO INICIAL ATUALIZADO ---
         let state = {
-          totalSamples: 10,
+          totalSamples: 0,
           errorCounts: {},
-          product: "familia-id", // 'familia-id', 'auto', 'doc', 'b2c'
+          product: "", // Produto começa vazio
         };
 
         const finalScoreDisplay = document.getElementById("finalScoreDisplay");
@@ -269,11 +263,16 @@
         );
         const criteriaContainer = document.getElementById("criteria-container");
 
-       
         const calculateFinalScore = () => {
-       
-          const NORMALIZING_CEILING = 0.96;
+          if (!state.product) {
+            return "--";
+          }
 
+          if (state.totalSamples <= 0) {
+            return 100;
+          }
+
+          const NORMALIZING_CEILING = 0.96;
           let totalCriticalCount = 0;
           let totalDeductions = 0;
 
@@ -283,7 +282,6 @@
               const criterion = ALL_CRITERIA.find((c) => c.id === id);
               if (criterion) {
                 if (criterion.isCritical) {
-                
                   totalCriticalCount += count;
                 } else {
                   totalDeductions += count * criterion.points;
@@ -292,53 +290,41 @@
             }
           }
 
-          // Se não houver amostras, a nota é 100%
-          if (!state.totalSamples || state.totalSamples <= 0) {
-            return 100;
-          }
-
-          // Garante que o número de amostras zeradas não exceda o total de amostras
           const cappedCriticalSamples = Math.min(
             state.totalSamples,
             totalCriticalCount
           );
-
-          // Amostras que não foram zeradas por erros críticos
           const nonCriticalSamples = state.totalSamples - cappedCriticalSamples;
-
-          // Pontuação total das amostras não-críticas, já com as deduções
           const totalPointsOfNonCriticalSamples =
             nonCriticalSamples * 100 - totalDeductions;
-
-          // A pontuação total não pode ser negativa. Amostras com erros críticos valem 0 pontos.
           const finalTotalPoints = Math.max(0, totalPointsOfNonCriticalSamples);
-
-          // Calcula a média base
           const baseAverage = finalTotalPoints / state.totalSamples;
 
           let finalScore = baseAverage;
 
-          // --- LÓGICA DO TETO ATUALIZADA ---
-          // Aplica o "Teto Normalizante" APENAS para "Família ID" e se houver erro crítico
           if (state.product === "familia-id" && totalCriticalCount > 0) {
             finalScore = baseAverage * NORMALIZING_CEILING;
           }
 
-          // Retorna a nota final arredondada para 2 casas decimais
           return parseFloat(finalScore.toFixed(2));
         };
 
         const updateUI = () => {
           const score = calculateFinalScore();
-          finalScoreDisplay.innerHTML = `${score}<span class="text-3xl opacity-80">%</span>`;
+          
+          if (score === "--") {
+             finalScoreDisplay.innerHTML = `<span class="text-4xl opacity-90">--</span>`;
+          } else {
+             finalScoreDisplay.innerHTML = `${score}<span class="text-3xl opacity-80">%</span>`;
+          }
         };
 
         const renderControlCard = () => {
           controlCardContainer.innerHTML = `
-      <div class="bg-white p-5 rounded-xl shadow-md border border-slate-200 space-y-4">
+      <div class="p-5 rounded-xl shadow-md border border-indigo-100 bg-gradient-to-br from-indigo-50 to-purple-50 space-y-5">
         
         <div>
-          <label for="total-samples" class="block text-sm font-semibold text-slate-700">
+          <label for="total-samples" class="block text-base font-semibold text-slate-800 mb-1">
             Quantidade Total de Amostras
           </label>
           <input
@@ -347,32 +333,43 @@
             value="${state.totalSamples === 0 ? "" : state.totalSamples}"
             min="0"
             placeholder="0"
-            class="mt-2 w-full text-2xl font-bold text-indigo-600 bg-slate-50 border-2 border-slate-200 rounded-lg p-2 text-center focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
+            class="mt-1 w-full text-2xl font-bold text-indigo-600 bg-white border-2 border-slate-200 rounded-lg p-2 text-center focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
           />
-          <p class="mt-2 text-xs text-slate-500">Insira o número total de amostras (auditorias) que você está avaliando.</p>
+          <p class="mt-2 text-xs text-slate-500">Obrigatório. Defina um valor maior que 0 para registrar erros.</p>
         </div>
 
         <div>
-          <label for="product-select" class="block text-sm font-semibold text-slate-700">
+          <label for="product-select" class="block text-base font-semibold text-slate-800 mb-1">
             Qual produto você atua?
           </label>
-          <select
-            id="product-select"
-            class="mt-2 w-full text-2xl font-bold text-indigo-600 bg-slate-50 border-2 border-slate-200 rounded-lg p-2 text-center focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
-          >
-            <option value="familia-id" ${
-              state.product === "familia-id" ? "selected" : ""
-            }>Família ID</option>
-            <option value="auto" ${
-              state.product === "auto" ? "selected" : ""
-            }>Auto</option>
-            <option value="doc" ${
-              state.product === "doc" ? "selected" : ""
-            }>Doc</option>
-            <option value="b2c" ${
-              state.product === "b2c" ? "selected" : ""
-            }>B2C</option>
-          </select>
+          <div class="relative mt-1">
+            <select
+              id="product-select"
+              required
+              class="w-full text-2xl font-bold text-indigo-600 bg-white border-2 border-slate-200 rounded-lg p-2 text-center focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition invalid:text-gray-400"
+            >
+              <option value="" disabled ${state.product === "" ? "selected" : ""}>
+                Selecione um produto...
+              </option>
+              <option value="familia-id" ${
+                state.product === "familia-id" ? "selected" : ""
+              }>Família ID</option>
+              <option value="auto" ${
+                state.product === "auto" ? "selected" : ""
+              }>Auto</option>
+              <option value="doc" ${
+                state.product === "doc" ? "selected" : ""
+              }>Doc</option>
+              <option value="b2c" ${
+                state.product === "b2c" ? "selected" : ""
+              }>B2C</option>
+            </select>
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-indigo-600">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          </div>
         </div>
         </div>
     `;
@@ -501,10 +498,17 @@
             state.totalSamples = isNaN(value) || value < 0 ? 0 : value;
 
             let needsUIRefresh = false;
-            for (const id in state.errorCounts) {
-              if (state.errorCounts[id] > state.totalSamples) {
-                state.errorCounts[id] = state.totalSamples;
-                needsUIRefresh = true;
+            // Se as amostras voltarem a 0, zera os erros
+            if (state.totalSamples === 0) {
+              state.errorCounts = {};
+              needsUIRefresh = true;
+            } else {
+              // Garante que nenhum erro seja maior que o total de amostras
+              for (const id in state.errorCounts) {
+                if (state.errorCounts[id] > state.totalSamples) {
+                  state.errorCounts[id] = state.totalSamples;
+                  needsUIRefresh = true;
+                }
               }
             }
 
@@ -534,20 +538,35 @@
             }
           } else if (target.id === "product-select") {
             state.product = target.value;
+            // Força o select a parecer válido
+            target.classList.remove("invalid:text-gray-400");
           }
           updateUI();
         };
 
+        // --- FUNÇÃO DE RESET ATUALIZADA ---
         const handleReset = () => {
-          state.totalSamples = 10;
+          state.totalSamples = 0;
           state.errorCounts = {};
-          state.product = "familia-id"; // Reseta o produto
+          state.product = ""; // Reseta o produto para o placeholder
           renderControlCard();
           renderCriteria();
           updateUI();
         };
+        
+        // --- NOVA VALIDAÇÃO DE FOCO ---
+        const handleFocusValidation = (e) => {
+          if (e.target.matches(".error-count-input")) {
+            if (state.totalSamples <= 0) {
+              e.target.blur(); // Tira o foco do input de erro
+              alert("É obrigatório definir a Quantidade Total de Amostras (maior que 0) antes de registrar apontamentos.");
+              document.getElementById("total-samples").focus(); // Foca no input de amostras
+            }
+          }
+        };
 
         mainContent.addEventListener("input", handleStateChange);
+        criteriaContainer.addEventListener("focusin", handleFocusValidation);
         resetButton.addEventListener("click", handleReset);
 
         renderControlCard();
