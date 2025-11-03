@@ -248,12 +248,11 @@
           },
         ];
 
-        // --- ESTADO INICIAL ATUALIZADO ---
+ 
         let state = {
           totalSamples: 0,
           errorCounts: {},
-          product: "", // Produto começa vazio
-        };
+          product: "", 
 
         const finalScoreDisplay = document.getElementById("finalScoreDisplay");
         const resetButton = document.getElementById("resetButton");
@@ -263,7 +262,9 @@
         );
         const criteriaContainer = document.getElementById("criteria-container");
 
+
         const calculateFinalScore = () => {
+        
           if (!state.product) {
             return "--";
           }
@@ -302,12 +303,14 @@
 
           let finalScore = baseAverage;
 
+    
           if (state.product === "familia-id" && totalCriticalCount > 0) {
             finalScore = baseAverage * NORMALIZING_CEILING;
           }
 
           return parseFloat(finalScore.toFixed(2));
         };
+
 
         const updateUI = () => {
           const score = calculateFinalScore();
@@ -319,6 +322,7 @@
           }
         };
 
+  
         const renderControlCard = () => {
           controlCardContainer.innerHTML = `
       <div class="p-5 rounded-xl shadow-md border border-indigo-100 bg-gradient-to-br from-indigo-50 to-purple-50 space-y-5">
@@ -544,28 +548,29 @@
           updateUI();
         };
 
-        // --- FUNÇÃO DE RESET ATUALIZADA ---
+ 
         const handleReset = () => {
           state.totalSamples = 0;
           state.errorCounts = {};
-          state.product = ""; // Reseta o produto para o placeholder
+          state.product = ""; 
           renderControlCard();
           renderCriteria();
           updateUI();
         };
         
-        // --- NOVA VALIDAÇÃO DE FOCO ---
+ 
         const handleFocusValidation = (e) => {
           if (e.target.matches(".error-count-input")) {
             if (state.totalSamples <= 0) {
-              e.target.blur(); // Tira o foco do input de erro
+              e.target.blur(); 
               alert("É obrigatório definir a Quantidade Total de Amostras (maior que 0) antes de registrar apontamentos.");
-              document.getElementById("total-samples").focus(); // Foca no input de amostras
+              document.getElementById("total-samples").focus();
             }
           }
         };
 
         mainContent.addEventListener("input", handleStateChange);
+ 
         criteriaContainer.addEventListener("focusin", handleFocusValidation);
         resetButton.addEventListener("click", handleReset);
 
