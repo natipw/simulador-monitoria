@@ -123,7 +123,7 @@
         };
 
         const ALL_CRITERIA = [
-          // Comunicação
+        
           {
             id: "c1",
             title: "Escrita Sem Erros Graves",
@@ -160,7 +160,6 @@
             category: CriterionCategory.Comunicacao,
           },
 
-          // Postura e Resolução
           {
             id: "c5",
             title: "Problema/Dúvida endereçado com sucesso",
@@ -189,7 +188,7 @@
             category: CriterionCategory.Resolucao,
           },
 
-          // Processos
+    
           {
             id: "c8",
             title: "Solicitação de Dados Essenciais",
@@ -597,12 +596,12 @@
           }
         };
 
-        // --- Listeners ---
+   
         mainContent.addEventListener("input", handleStateChange);
         criteriaContainer.addEventListener("focusin", handleFocusValidation);
         resetButton.addEventListener("click", handleReset);
 
-        // --- Renderização Inicial ---
+  
         renderControlCard();
         renderCriteria();
         updateUI();
