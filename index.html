@@ -240,9 +240,11 @@
           },
         ];
 
+        // --- ESTADO INICIAL ATUALIZADO ---
         let state = {
           totalSamples: 10,
           errorCounts: {},
+          product: "familia-id", // 'familia-id', 'auto', 'doc', 'b2c'
         };
 
         const finalScoreDisplay = document.getElementById("finalScoreDisplay");
@@ -253,9 +255,9 @@
         );
         const criteriaContainer = document.getElementById("criteria-container");
 
-        // --- FUNÇÃO DE CÁLCULO ATUALIZADA ---
+        
         const calculateFinalScore = () => {
-          // Define o valor do teto normalizante
+       
           const NORMALIZING_CEILING = 0.96;
 
           let totalCriticalCount = 0;
@@ -267,48 +269,43 @@
               const criterion = ALL_CRITERIA.find((c) => c.id === id);
               if (criterion) {
                 if (criterion.isCritical) {
-                  // Conta a quantidade total de erros críticos
+             
                   totalCriticalCount += count;
                 } else {
-                  // Soma as deduções dos erros não-críticos
+             
                   totalDeductions += count * criterion.points;
                 }
               }
             }
           }
 
-          // Se não houver amostras, a nota é 100%
+       
           if (!state.totalSamples || state.totalSamples <= 0) {
             return 100;
           }
 
-          // Garante que o número de amostras zeradas não exceda o total de amostras
+        
           const cappedCriticalSamples = Math.min(
             state.totalSamples,
             totalCriticalCount
           );
 
-          // Amostras que não foram zeradas por erros críticos
+   
           const nonCriticalSamples = state.totalSamples - cappedCriticalSamples;
 
-          // Pontuação total das amostras não-críticas, já com as deduções
           const totalPointsOfNonCriticalSamples =
             nonCriticalSamples * 100 - totalDeductions;
 
-          // A pontuação total não pode ser negativa. Amostras com erros críticos valem 0 pontos.
           const finalTotalPoints = Math.max(0, totalPointsOfNonCriticalSamples);
 
-          // Calcula a média base
           const baseAverage = finalTotalPoints / state.totalSamples;
 
           let finalScore = baseAverage;
 
-          // Aplica o "Teto Normalizante" se houver pelo menos um erro crítico
-          if (totalCriticalCount > 0) {
+          if (state.product === "familia-id" && totalCriticalCount > 0) {
             finalScore = baseAverage * NORMALIZING_CEILING;
           }
 
-          // Retorna a nota final arredondada para 2 casas decimais
           return parseFloat(finalScore.toFixed(2));
         };
 
@@ -319,20 +316,46 @@
 
         const renderControlCard = () => {
           controlCardContainer.innerHTML = `
-      <div class="bg-white p-5 rounded-xl shadow-md border border-slate-200">
-        <label for="total-samples" class="block text-sm font-semibold text-slate-700">
-          Quantidade Total de Amostras
-        </label>
-        <input
-          type="number"
-          id="total-samples"
-          value="${state.totalSamples === 0 ? "" : state.totalSamples}"
-          min="0"
-          placeholder="0"
-          class="mt-2 w-full text-2xl font-bold text-indigo-600 bg-slate-50 border-2 border-slate-200 rounded-lg p-2 text-center focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
-        />
-        <p class="mt-2 text-xs text-slate-500">Insira o número total de amostras (auditorias) que você está avaliando.</p>
-      </div>
+      <div class="bg-white p-5 rounded-xl shadow-md border border-slate-200 space-y-4">
+        
+        <div>
+          <label for="total-samples" class="block text-sm font-semibold text-slate-700">
+            Quantidade Total de Amostras
+          </label>
+          <input
+            type="number"
+            id="total-samples"
+            value="${state.totalSamples === 0 ? "" : state.totalSamples}"
+            min="0"
+            placeholder="0"
+            class="mt-2 w-full text-2xl font-bold text-indigo-600 bg-slate-50 border-2 border-slate-200 rounded-lg p-2 text-center focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
+          />
+          <p class="mt-2 text-xs text-slate-500">Insira o número total de amostras (auditorias) que você está avaliando.</p>
+        </div>
+
+        <div>
+          <label for="product-select" class="block text-sm font-semibold text-slate-700">
+            Qual produto você atua?
+          </label>
+          <select
+            id="product-select"
+            class="mt-2 w-full text-lg font-medium text-indigo-600 bg-slate-50 border-2 border-slate-200 rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
+          >
+            <option value="familia-id" ${
+              state.product === "familia-id" ? "selected" : ""
+            }>Família ID (Com Teto)</option>
+            <option value="auto" ${
+              state.product === "auto" ? "selected" : ""
+            }>Auto (Sem Teto)</option>
+            <option value="doc" ${
+              state.product === "doc" ? "selected" : ""
+            }>Doc (Sem Teto)</option>
+            <option value="b2c" ${
+              state.product === "b2c" ? "selected" : ""
+            }>B2C (Sem Teto)</option>
+          </select>
+        </div>
+        </div>
     `;
         };
 
@@ -415,7 +438,7 @@
           return `
       <div class="${cardClasses}">
         <div class="flex-1">
-           <h3 class="font-bold text-slate-800 flex items-center gap-2">
+            <h3 class="font-bold text-slate-800 flex items-center gap-2">
               ${
                 isCritical
                   ? '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-rose-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>'
@@ -490,6 +513,8 @@
             } else {
               state.errorCounts[id] = value;
             }
+          } else if (target.id === "product-select") {
+            state.product = target.value;
           }
           updateUI();
         };
@@ -497,6 +522,7 @@
         const handleReset = () => {
           state.totalSamples = 10;
           state.errorCounts = {};
+          state.product = "familia-id"; // Reseta o produto
           renderControlCard();
           renderCriteria();
           updateUI();
