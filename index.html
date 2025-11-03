@@ -28,14 +28,18 @@
           padding-top: 2rem;
         }
       }
+      /* Remove a seta padrão do select */
       select {
         -webkit-appearance: none;
         -moz-appearance: none;
         appearance: none;
-        padding-right: 2.5rem !important; 
+        /* Adiciona padding para não sobrepor o texto com a seta customizada */
+        padding-right: 2.5rem !important; /* 40px */
       }
+      /* Estilo para a opção placeholder */
       select:invalid {
-        color: #9ca3af; 
+        color: #6b7280; /* text-gray-500 */
+        font-weight: 500; /* font-medium */
       }
     </style>
   </head>
@@ -77,7 +81,11 @@
                 ></path>
               </svg>
             </button>
-            <div class="bg-white/20 p-4 rounded-xl text-center flex-grow min-w-[150px]">
+            
+            <div
+              id="finalScoreBox"
+              class="bg-white/20 p-4 rounded-xl text-center flex-grow min-w-[150px] transition-colors duration-300"
+            >
               <span
                 class="text-sm uppercase text-indigo-200 tracking-wider font-semibold"
                 >Nota Final</span
@@ -89,13 +97,21 @@
                 <span class="text-4xl opacity-90">--</span>
               </div>
             </div>
-          </div>
+            </div>
         </div>
       </header>
 
       <main id="main-content" class="mt-8 space-y-8">
+        
         <div id="control-card-container"></div>
 
+        <div 
+          id="notification-banner"
+          class="hidden p-4 text-sm font-medium text-red-800 rounded-lg bg-red-100 border border-red-300" 
+          role="alert"
+        >
+          <span id="notification-message"></span>
+        </div>
         <section id="criteria-container" class="space-y-8"></section>
       </main>
     </div>
@@ -248,27 +264,36 @@
           },
         ];
 
- 
         let state = {
           totalSamples: 0,
           errorCounts: {},
-          product: "", 
+          product: "",
+        };
 
         const finalScoreDisplay = document.getElementById("finalScoreDisplay");
+        const finalScoreBox = document.getElementById("finalScoreBox");
         const resetButton = document.getElementById("resetButton");
         const mainContent = document.getElementById("main-content");
         const controlCardContainer = document.getElementById(
           "control-card-container"
         );
         const criteriaContainer = document.getElementById("criteria-container");
+        const notificationBanner = document.getElementById("notification-banner");
+        const notificationMessage = document.getElementById("notification-message");
 
+        const showNotification = (message) => {
+          notificationMessage.textContent = message;
+          notificationBanner.classList.remove("hidden");
+        };
+
+        const hideNotification = () => {
+          notificationBanner.classList.add("hidden");
+        };
 
         const calculateFinalScore = () => {
-        
           if (!state.product) {
             return "--";
           }
-
           if (state.totalSamples <= 0) {
             return 100;
           }
@@ -303,7 +328,6 @@
 
           let finalScore = baseAverage;
 
-    
           if (state.product === "familia-id" && totalCriticalCount > 0) {
             finalScore = baseAverage * NORMALIZING_CEILING;
           }
@@ -311,18 +335,24 @@
           return parseFloat(finalScore.toFixed(2));
         };
 
-
         const updateUI = () => {
           const score = calculateFinalScore();
           
+          finalScoreBox.classList.remove("bg-white/20", "bg-red-500", "bg-green-500");
+
           if (score === "--") {
-             finalScoreDisplay.innerHTML = `<span class="text-4xl opacity-90">--</span>`;
+            finalScoreBox.classList.add("bg-white/20");
+            finalScoreDisplay.innerHTML = `<span class="text-4xl opacity-90">--</span>`;
           } else {
-             finalScoreDisplay.innerHTML = `${score}<span class="text-3xl opacity-80">%</span>`;
+            if (score < 97) {
+              finalScoreBox.classList.add("bg-red-500");
+            } else {
+              finalScoreBox.classList.add("bg-green-500");
+            }
+            finalScoreDisplay.innerHTML = `${score}<span class="text-3xl opacity-80">%</span>`;
           }
         };
 
-  
         const renderControlCard = () => {
           controlCardContainer.innerHTML = `
       <div class="p-5 rounded-xl shadow-md border border-indigo-100 bg-gradient-to-br from-indigo-50 to-purple-50 space-y-5">
@@ -350,7 +380,7 @@
             <select
               id="product-select"
               required
-              class="w-full text-2xl font-bold text-indigo-600 bg-white border-2 border-slate-200 rounded-lg p-2 text-center focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition invalid:text-gray-400"
+              class="w-full text-2xl font-bold text-indigo-600 bg-white border-2 border-slate-200 rounded-lg p-2 text-left pl-4 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
             >
               <option value="" disabled ${state.product === "" ? "selected" : ""}>
                 Selecione um produto...
@@ -501,13 +531,15 @@
             let value = parseInt(target.value, 10);
             state.totalSamples = isNaN(value) || value < 0 ? 0 : value;
 
+            if (state.totalSamples > 0) {
+              hideNotification();
+            }
+
             let needsUIRefresh = false;
-            // Se as amostras voltarem a 0, zera os erros
             if (state.totalSamples === 0) {
               state.errorCounts = {};
               needsUIRefresh = true;
             } else {
-              // Garante que nenhum erro seja maior que o total de amostras
               for (const id in state.errorCounts) {
                 if (state.errorCounts[id] > state.totalSamples) {
                   state.errorCounts[id] = state.totalSamples;
@@ -542,38 +574,37 @@
             }
           } else if (target.id === "product-select") {
             state.product = target.value;
-            // Força o select a parecer válido
-            target.classList.remove("invalid:text-gray-400");
+            target.classList.remove("invalid:text-gray-500", "invalid:font-medium");
           }
           updateUI();
         };
 
- 
         const handleReset = () => {
           state.totalSamples = 0;
           state.errorCounts = {};
           state.product = ""; 
+          hideNotification(); 
           renderControlCard();
           renderCriteria();
           updateUI();
         };
         
- 
         const handleFocusValidation = (e) => {
           if (e.target.matches(".error-count-input")) {
             if (state.totalSamples <= 0) {
               e.target.blur(); 
-              alert("É obrigatório definir a Quantidade Total de Amostras (maior que 0) antes de registrar apontamentos.");
-              document.getElementById("total-samples").focus();
+              showNotification("É obrigatório definir a Quantidade Total de Amostras (maior que 0) antes de registrar apontamentos.");
+              document.getElementById("total-samples").focus(); 
             }
           }
         };
 
+        // --- Listeners ---
         mainContent.addEventListener("input", handleStateChange);
- 
         criteriaContainer.addEventListener("focusin", handleFocusValidation);
         resetButton.addEventListener("click", handleReset);
 
+        // --- Renderização Inicial ---
         renderControlCard();
         renderCriteria();
         updateUI();
